@@ -1,0 +1,34 @@
+name: Test Case - Testphp and Temp-fe
+
+on:
+  push:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: '0 5 * * 1' 
+  
+env:
+  NIGHTVISION_TOKEN: ${{ secrets.NIGHTVISION_TOKEN }}
+  
+jobs:
+  test:
+    permissions:
+      security-events: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: (1) Clone Code
+        uses: actions/checkout@v3
+      
+      - name: (2) Install NightVision
+        run: |
+            wget -c https://downloads.nightvision.net/binaries/latest/nightvision_latest_linux_amd64.tar.gz -O - | tar -xz; sudo mv nightvision /usr/local/bin/
+                    python -m pip install semgrep --user
+
+      - name: (3) Scan the Public Web App
+        run: |
+          export NIGHTVISION_API_URL=https://api.dev.nightvision.net/api/v1/
+          nightvision scan -t testphp -a Default_Application
+          
+      - name: (4) Scan the Public API
+        run: |
+          export NIGHTVISION_API_URL=https://api.dev.nightvision.net/api/v1/
+          nightvision scan -t temp-fe -a Default_Application
